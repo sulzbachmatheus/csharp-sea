@@ -11,132 +11,65 @@ namespace CSharpTestProject
             Console.WriteLine("Digite as informações no formato a seguir: 'Regular: 16Mar2020(mon), 17Mar2020(tues), 18Mar2020(wed)':");
             var info = Console.ReadLine();
             int index = info.IndexOf(':');
+
             string tipoParticipante = "";
+            tipoParticipante = info.Substring(0, index);
+            
             string datas = "";
-            if (index > 0) {
-                tipoParticipante = info.Substring(0, index);
-                datas = info.Substring(index + 1);
-            }                               
-            var listDatas = datas.Split(',').ToList();            
+            datas = info.Substring(index + 1);
+            
+            var listaDatas = datas.Split(',').ToList();            
+            
             List<string> dias = new List<string>();
-            foreach (var item in listDatas) {
-                dias.Add(item.Substring(10));                
-            }
-            // Console.WriteLine("Tipo cliente informado: {0}, Dia(s) informada(s): {1}", tipoParticipante, dias));    
-            // foreach(var item in dias){
-            //     Console.WriteLine(item);
-            // }     
+            char[] charsToTrim = { '(', ')'};
+
+            foreach (var item in listaDatas) {
+                //trim to remove ( ) chars
+                dias.Add(item.Substring(10).Trim(charsToTrim));          
+            }     
 
             EncontrarHotelMaisBarato(dias, tipoParticipante);    
         }
 
-        static void EncontrarHotelMaisBarato(List<string> dias, string tipoParticipante) {
-            var taxa1 = JardimBotanico.GetTaxa(dias, tipoParticipante);
-            var taxa2 = MarAtlantico.GetTaxa(dias, tipoParticipante);
-            var taxa3 = ParqueDasFlores.GetTaxa(dias, tipoParticipante);
+        static string EncontrarHotelMaisBarato(List<string> dias, string tipoParticipante) {
 
-            var maisBarato = Math.Min(taxa1, Math.Min(taxa2, taxa3));
-        }
-    }
+            List<Hotel> hoteis = new List<Hotel>();
+            hoteis.Add(new JardimBotanico("Jardim Botanico"));
+            hoteis.Add(new MarAtlantico("Mar Atlantico"));
+            hoteis.Add(new ParqueDasFlores("Parque das Flores"));   
 
-    public static class JardimBotanico {
-        public static int TotalTaxa { get; set; }
-        public static int GetClassificacao() {
-            return 4;
-        }
+            var jbTaxa = hoteis.Where(o => o.Tipo == "Jardim Botanico").First().GetTaxa(dias, tipoParticipante);
+            var maTaxa = hoteis.Where(o => o.Tipo == "Mar Atlantico").First().GetTaxa(dias, tipoParticipante);
+            var pdfTaxa = hoteis.Where(o => o.Tipo == "Parque das Flores").First().GetTaxa(dias, tipoParticipante);
 
-        public static int GetTaxa(List<string> tipoTaxa, string tipoParticipante) {
+            int[] totalDeTodasTaxas = { jbTaxa, maTaxa, pdfTaxa };
 
-            if (tipoParticipante == "Regular"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 160;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 60;
-                    }
-                }
-            } 
-            else if (tipoParticipante == "Fidelidade"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 110;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 50;
-                    }
-                }
-            }
-            return TotalTaxa;
-        }
-    }
+            bool contemDuplicados = totalDeTodasTaxas.Distinct().Count() != totalDeTodasTaxas.Length; 
 
-    public static class MarAtlantico {
+            int maisBarato = 0;
+            //verifica mais barato entre os tres no caso de nao existir items duplicados.
+            maisBarato = Math.Min(jbTaxa, Math.Min(maTaxa, pdfTaxa));
 
-        public static int TotalTaxa { get; set; }
-        public static int GetClassificacao() {
-            return 5;
-        }
-
-        public static int GetTaxa(List<string> tipoTaxa, string tipoParticipante) {
-            
-            if (tipoParticipante == "Regular"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 220;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 150;
+            if(!contemDuplicados){               
+                foreach(var item in hoteis){
+                    if(item.TotalTaxa == maisBarato){
+                        Console.WriteLine(item.Tipo);
                     }
                 }
             } 
-            else if (tipoParticipante == "Fidelidade"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 100;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 40;
+            else {
+                List<Hotel> duplicados = new List<Hotel>();
+                foreach(var item in hoteis){
+                    if(item.TotalTaxa == maisBarato){
+                        duplicados.Add(item);
                     }
                 }
-            }
-            return TotalTaxa;
+                var maiorClassificacao = duplicados.OrderByDescending(o => o.Classificacao).FirstOrDefault().Tipo;
+                Console.WriteLine(maiorClassificacao);
+            }            
 
+            return "";           
         }
-    }
-
-    public static class ParqueDasFlores {
-
-        public static int TotalTaxa { get; set; }
-        public static int GetClassificacao() {
-            return 3;
-        }
-
-        public static int GetTaxa(List<string> tipoTaxa, string tipoParticipante) {
-            
-            if (tipoParticipante == "Regular"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 110;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 90;
-                    }
-                }
-            } 
-            else if (tipoParticipante == "Fidelidade"){
-                foreach (var tipo in tipoTaxa){
-                    if (tipo == "(mon)" || tipo == "(tues)" || tipo == "(wed)" || tipo == "(thur)" || tipo == "(fri)"){
-                        TotalTaxa = TotalTaxa + 80;
-                    }
-                    else if (tipo == "(sat)" || tipo == "(sun)") {
-                        TotalTaxa = TotalTaxa + 80;
-                    }
-                }
-            }
-            return TotalTaxa;
-
-        }
-    }
+    }  
     
 }

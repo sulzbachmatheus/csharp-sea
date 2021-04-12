@@ -21,12 +21,17 @@ namespace CSharpTestProject
             var listaDatas = datas.Split(',').ToList();            
             
             List<string> dias = new List<string>();
-            char[] charsToTrim = { '(', ')'};
 
             foreach (var item in listaDatas) {
-                //trim to remove ( ) chars
-                dias.Add(item.Substring(10).Trim(charsToTrim));          
+                //trim to remove '(' ')' chars
+                dias.Add(item.Substring(10).Trim('(', ')'));          
             }     
+
+            // Console.WriteLine(tipoParticipante);
+
+            // foreach (var item in dias) {
+            //     Console.WriteLine(item);
+            // }
 
             EncontrarHotelMaisBarato(dias, tipoParticipante);    
         }
@@ -47,10 +52,9 @@ namespace CSharpTestProject
             bool contemDuplicados = totalDeTodasTaxas.Distinct().Count() != totalDeTodasTaxas.Length; 
 
             int maisBarato = 0;
-            //verifica mais barato entre os tres no caso de nao existir items duplicados.
             maisBarato = Math.Min(jbTaxa, Math.Min(maTaxa, pdfTaxa));
 
-            if(!contemDuplicados){               
+            if (!contemDuplicados) {               
                 foreach(var item in hoteis){
                     if(item.TotalTaxa == maisBarato){
                         Console.WriteLine(item.Tipo);
